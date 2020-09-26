@@ -1,7 +1,5 @@
 require('dotenv').config();
 
-console.log('fvjfvjbfvjbfjv', process.env.JWT_SECRET);
-
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');

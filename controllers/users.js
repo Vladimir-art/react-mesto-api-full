@@ -1,3 +1,4 @@
+const { JWT_SECRET } = process.env;
 const bcryptjs = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
@@ -81,7 +82,7 @@ module.exports.updateAvatar = (req, res) => {
 
 module.exports.login = (req, res) => {
   const { email, password } = req.body;
-  User.findOne({ email })
+  User.findOne({ email }).select('+password')
     .then((u) => {
       if (!u) {
         return Promise.reject(new Error('Неверная почта или пароль'));
@@ -96,7 +97,7 @@ module.exports.login = (req, res) => {
         });
     })
     .then((verifiedUser) => {
-      const token = jwt.sign({ _id: verifiedUser._id }, 'secret-key', { expiresIn: '7d' }); // создаем токен сроком на неделю
+      const token = jwt.sign({ _id: verifiedUser._id }, JWT_SECRET, { expiresIn: '7d' }); // создаем токен сроком на неделю
       res.status(200).send({ token });
     })
     .catch((err) => { // возвращаем ошибку аутентификации
