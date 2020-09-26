@@ -11,8 +11,6 @@ users.get('/', getUsers); // роут по получению пользоват
 
 users.get('/:id', getUserId); // роут по получению пользователя по ID
 
-// users.post('/', createUser); // создать пользователя
-
 users.patch('/me', updateUser); // обновить данные о пользователе (имя, деятельность)
 
 users.patch('/me/avatar', updateAvatar); // обновить аватар
