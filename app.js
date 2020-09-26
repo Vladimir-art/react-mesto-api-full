@@ -1,3 +1,7 @@
+require('dotenv').config();
+
+console.log('fvjfvjbfvjbfjv', process.env.JWT_SECRET);
+
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
@@ -28,14 +32,6 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
 app.use(limiter); // подключаем ко всем запосам
 app.use(bodyParser.json()); // for parsing application/json
 app.use(bodyParser.urlencoded({ extended: true }));
-
-app.use((req, res, next) => {
-  req.user = {
-    _id: '5f4bb1fd1c4d5727741ab9fb', // вставьте сюда _id созданного в предыдущем пункте пользователя 5f4bb1fd1c4d5727741ab9fb
-  };
-
-  next();
-});
 
 // роуты, не требующие авторизации
 app.post('/signin', login);
