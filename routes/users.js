@@ -1,7 +1,6 @@
 const users = require('express').Router(); // создаем роутер
 
 const {
-  createUser,
   getUsers,
   getUserId,
   updateUser,
@@ -12,7 +11,7 @@ users.get('/', getUsers); // роут по получению пользоват
 
 users.get('/:id', getUserId); // роут по получению пользователя по ID
 
-users.post('/', createUser); // создать пользователя
+// users.post('/', createUser); // создать пользователя
 
 users.patch('/me', updateUser); // обновить данные о пользователе (имя, деятельность)
 

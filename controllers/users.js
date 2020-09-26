@@ -96,7 +96,7 @@ module.exports.login = (req, res) => {
         });
     })
     .then((verifiedUser) => {
-      const token = jwt.sign({ _id: verifiedUser._id }, 'secret-key', { expressIn: '7d' });
+      const token = jwt.sign({ _id: verifiedUser._id }, 'secret-key', { expiresIn: '7d' }); // создаем токен сроком на неделю
       res.status(200).send({ token });
     })
     .catch((err) => { // возвращаем ошибку аутентификации

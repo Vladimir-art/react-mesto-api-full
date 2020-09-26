@@ -15,6 +15,7 @@ const limiter = expressRateLimit({
 
 const { users } = require('./routes/users'); // подключаем модули с инфой о пользователе(ях)
 const { cards } = require('./routes/cards'); // подключаем модули с инфой с карточками
+const { createUser, login } = require('./controllers/users');
 
 // подключаемся к серверу mongo
 mongoose.connect('mongodb://localhost:27017/mestodb', {
@@ -35,6 +36,8 @@ app.use((req, res, next) => {
   next();
 });
 
+app.post('/signin', login);
+app.post('/signup', createUser);
 app.use('/users', users); // используем роуты со списком пользователей
 app.use('/cards', cards); // список карточек
 app.use('/', (req, res) => { // если запросы не верны, выдаем ошибку
