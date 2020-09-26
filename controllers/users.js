@@ -1,12 +1,29 @@
+const bcryptjs = require('bcryptjs');
 const User = require('../models/user');
 
 module.exports.createUser = (req, res) => {
-  const { name, about, avatar } = req.body;
-  User.create({ name, about, avatar })
-    .then((u) => res.status(200).send(u))
-    .catch((err) => {
-      if (err.name === 'ValidationError') return res.status(400).send({ message: `Произошла ошибка валидации ${err}` });
-      return res.status(500).send({ message: `Произошла ошибка ${err}` });
+  const {
+    name,
+    about,
+    avatar,
+    email,
+    password,
+  } = req.body;
+  bcryptjs.hash(password, 10)
+    .then((hash) => {
+      console.log(hash);
+      User.create({
+        name,
+        about,
+        avatar,
+        email,
+        password: hash,
+      })
+        .then((u) => res.status(200).send(u))
+        .catch((err) => {
+          if (err.name === 'ValidationError') return res.status(400).send({ message: `Произошла ошибка валидации ${err}` });
+          return res.status(500).send({ message: `Произошла ошибка ${err}` });
+        });
     });
 };
 
