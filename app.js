@@ -37,11 +37,13 @@ app.use((req, res, next) => {
   next();
 });
 
+// роуты, не требующие авторизации
 app.post('/signin', login);
 app.post('/signup', createUser);
 
-app.use(auth);
+app.use(auth); // авторизация
 
+// роуты, которым авторизация нужна
 app.use('/users', users); // используем роуты со списком пользователей
 app.use('/cards', cards); // список карточек
 app.use('/', (req, res) => { // если запросы не верны, выдаем ошибку
