@@ -1,4 +1,5 @@
 const bcryptjs = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 
 module.exports.createUser = (req, res) => {
@@ -11,7 +12,6 @@ module.exports.createUser = (req, res) => {
   } = req.body;
   bcryptjs.hash(password, 10)
     .then((hash) => {
-      console.log(hash);
       User.create({
         name,
         about,
@@ -76,5 +76,30 @@ module.exports.updateAvatar = (req, res) => {
         return res.status(404).send({ message: 'Данного пользователя не существует' });
       }
       return res.status(500).send({ message: `Произошла ошибка ${err}` });
+    });
+};
+
+module.exports.login = (req, res) => {
+  const { email, password } = req.body;
+  User.findOne({ email })
+    .then((u) => {
+      if (!u) {
+        return Promise.reject(new Error('Неверная почта или пароль'));
+      }
+      // сравниваем переданный пароль и хеш из базы
+      return bcryptjs.compare(password, u.password)
+        .then((matched) => { // результат работы bcryptjs.compare (принимает true or false)
+          if (!matched) {
+            return Promise.reject(new Error('Неверная почта или пароль'));
+          }
+          return u;
+        });
+    })
+    .then((verifiedUser) => {
+      const token = jwt.sign({ _id: verifiedUser._id }, 'secret-key', { expressIn: '7d' });
+      res.status(200).send({ token });
+    })
+    .catch((err) => { // возвращаем ошибку аутентификации
+      res.status(401).send({ message: err.message });
     });
 };
