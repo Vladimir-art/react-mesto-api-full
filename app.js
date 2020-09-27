@@ -1,5 +1,6 @@
 require('dotenv').config();
 
+const { celebrate, Joi, errors } = require('celebrate'); // валидация запросов до передачи обработки в контроллеры
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
@@ -32,7 +33,16 @@ app.use(bodyParser.json()); // for parsing application/json
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // роуты, не требующие авторизации
-app.post('/signin', login);
+app.post('/signin', celebrate({
+  body: Joi.object().keys({
+    name: Joi.string().required().min(2).max(30),
+    about: Joi.string().required().min(2).max(30),
+    avatar: Joi.string().regex(/(http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-/]))?/).required(),
+    email: Joi.string().email().required(),
+    password: Joi.string().min(8).required(),
+  }).unknown(true),
+}), login);
+
 app.post('/signup', createUser);
 
 app.use(auth); // авторизация
@@ -44,6 +54,7 @@ app.use('/', (req, res) => { // если запросы не верны, выд�
   res.status(404).send({ message: 'Запрашиваемой страницы не существет' });
 });
 
+app.use(errors());
 // централизованная обработка ошибок
 app.use((err, req, res, next) => {
   const { statusCode = 500, message } = err;
