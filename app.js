@@ -19,6 +19,7 @@ const limiter = expressRateLimit({
 const { users } = require('./routes/users'); // подключаем модули с инфой о пользователе(ях)
 const { cards } = require('./routes/cards'); // подключаем модули с инфой с карточками
 const { createUser, login } = require('./controllers/users');
+const { requestLogger, errorLogger } = require('./middlewares/logger'); // подключение логгирования работы сервера
 const auth = require('./middlewares/auth');
 
 // подключаемся к серверу mongo
@@ -32,8 +33,17 @@ app.use(limiter); // подключаем ко всем запосам
 app.use(bodyParser.json()); // for parsing application/json
 app.use(bodyParser.urlencoded({ extended: true }));
 
+app.use(requestLogger); // подключаем логгер запросов
+
 // роуты, не требующие авторизации
 app.post('/signin', celebrate({
+  body: Joi.object().keys({
+    email: Joi.string().email().required(),
+    password: Joi.string().min(8).required(),
+  }).unknown(true),
+}), login);
+
+app.post('/signup', celebrate({
   body: Joi.object().keys({
     name: Joi.string().required().min(2).max(30),
     about: Joi.string().required().min(2).max(30),
@@ -41,19 +51,25 @@ app.post('/signin', celebrate({
     email: Joi.string().email().required(),
     password: Joi.string().min(8).required(),
   }).unknown(true),
-}), login);
-
-app.post('/signup', createUser);
+}), createUser);
 
 app.use(auth); // авторизация
 
 // роуты, которым авторизация нужна
 app.use('/users', users); // используем роуты со списком пользователей
-app.use('/cards', cards); // список карточек
+app.use('/cards', celebrate({
+  body: Joi.object().keys({
+    name: Joi.string().min(2).max(30).required(),
+    link: Joi.string().regex(/(http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-/]))?/).required(),
+  }).unknown(true),
+}), cards); // список карточек
 app.use('/', (req, res) => { // если запросы не верны, выдаем ошибку
   res.status(404).send({ message: 'Запрашиваемой страницы не существет' });
 });
 
+app.use(errorLogger); // подключаем логгер ошибок
+
+// обработка ошибок на стадии поверки celebrate
 app.use(errors());
 // централизованная обработка ошибок
 app.use((err, req, res, next) => {

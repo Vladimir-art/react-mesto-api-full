@@ -5,8 +5,6 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 const CentralError = require('../middlewares/CentralError');
 
-// const mainErr = new CentralError();
-
 module.exports.createUser = (req, res, next) => {
   const {
     name,
@@ -24,20 +22,8 @@ module.exports.createUser = (req, res, next) => {
         email,
         password: hash,
       })
-        // .orFail(new CentralError('Произошла ошибка валидации', 400))
-        .then((u) => {
-          if (!u) {
-            throw new CentralError('Произошла ошибка валидации', 400);
-          }
-          res.status(200).send(u);
-        })
-        .catch((next) => {
-          console.log('jbdhdhhd', next.errorMessage);
-        });
-        // .catch((err) => {
-        //   if (err.name === 'ValidationError') return res.status(400).send({ message: `Произошла ошибка валидации ${err}` });
-        //   return res.status(500).send({ message: `Произошла ошибка ${err}` });
-        // });
+        .then((u) => res.status(200).send(u))
+        .catch(next);
     });
 };
 
