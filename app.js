@@ -27,14 +27,6 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
   useFindAndModify: false,
 });
 
-app.use((req, res, next) => {
-  req.user = {
-    _id: '5f4bb1fd1c4d5727741ab9fb',
-  };
-
-  next();
-});
-
 app.use(limiter); // подключаем ко всем запосам
 app.use(bodyParser.json()); // for parsing application/json
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -43,7 +35,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.post('/signin', login);
 app.post('/signup', createUser);
 
-// app.use(auth); // авторизация
+app.use(auth); // авторизация
 
 // роуты, которым авторизация нужна
 app.use('/users', users); // используем роуты со списком пользователей
