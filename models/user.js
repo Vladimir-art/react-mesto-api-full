@@ -31,7 +31,7 @@ const userSchema = new mongoose.Schema({
       validator(str) {
         return validator.isEmail(str);
       },
-      message: 'Неверная почта или пароль',
+      // message: 'Неверная почта или пароль',
     },
     required: true,
     unique: true,
@@ -40,6 +40,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
     minlength: 8,
+    select: false,
   },
 });
 

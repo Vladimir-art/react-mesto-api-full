@@ -1,9 +1,13 @@
 const { JWT_SECRET } = process.env;
 const bcryptjs = require('bcryptjs');
+const validator = require('validator');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
+const CentralError = require('../middlewares/CentralError');
 
-module.exports.createUser = (req, res) => {
+// const mainErr = new CentralError();
+
+module.exports.createUser = (req, res, next) => {
   const {
     name,
     about,
@@ -20,78 +24,79 @@ module.exports.createUser = (req, res) => {
         email,
         password: hash,
       })
-        .then((u) => res.status(200).send(u))
-        .catch((err) => {
-          if (err.name === 'ValidationError') return res.status(400).send({ message: `Произошла ошибка валидации ${err}` });
-          return res.status(500).send({ message: `Произошла ошибка ${err}` });
+        // .orFail(new CentralError('Произошла ошибка валидации', 400))
+        .then((u) => {
+          if (!u) {
+            throw new CentralError('Произошла ошибка валидации', 400);
+          }
+          res.status(200).send(u);
+        })
+        .catch((next) => {
+          console.log('jbdhdhhd', next.errorMessage);
         });
+        // .catch((err) => {
+        //   if (err.name === 'ValidationError') return res.status(400).send({ message: `Произошла ошибка валидации ${err}` });
+        //   return res.status(500).send({ message: `Произошла ошибка ${err}` });
+        // });
     });
 };
 
-module.exports.getUsers = (req, res) => {
+module.exports.getUsers = (req, res, next) => {
   User.find({})
     .then((u) => res.status(200).send(u))
-    .catch((err) => res.status(500).send({ message: `Произошла ошибка ${err}` }));
+    .catch(next);
 };
 
-module.exports.getUserId = (req, res) => {
+module.exports.getUserId = (req, res, next) => {
   User.findById(req.params.id)
-    .orFail(new Error('Not found'))
+    .orFail(new CentralError('Данного пользователя не существует', 404))
     .then((u) => res.status(200).send(u))
-    .catch((err) => {
-      if (err.message === 'Not found') {
-        res.status(404).send({ message: 'Данного пользователя не существует' });
-      } else {
-        res.status(500).send({ message: `Произошла ошибка ${err}` });
-      }
-    });
+    .catch(next);
 };
 
-module.exports.updateUser = (req, res) => {
+module.exports.updateUser = (req, res, next) => {
   User.findByIdAndUpdate(req.user._id,
     {
       name: req.body.name,
       about: req.body.about,
     })
-    .orFail(new Error('Not found'))
-    .then((u) => res.status(200).send(u))
-    .catch((err) => {
-      if (err.name === 'ValidationError') return res.status(400).send({ message: `Произошла ошибка валидации ${err}` });
-      if (err.message === 'Not found') {
-        return res.status(404).send({ message: 'Данного пользователя не существует' });
+    .orFail(new CentralError('Данного пользователя не существует', 404))
+    .then((u) => {
+      if (u.name === null || u.about === null) {
+        throw new CentralError('Произошла ошибка валидации', 401);
       }
-      return res.status(500).send({ message: `Произошла ошибка ${err}` });
-    });
+      res.status(200).send(u);
+    })
+    .catch(next);
 };
 
-module.exports.updateAvatar = (req, res) => {
+module.exports.updateAvatar = (req, res, next) => {
   User.findByIdAndUpdate(req.user._id,
     {
       avatar: req.body.avatar,
     })
-    .orFail(new Error('Not found'))
-    .then((u) => res.status(200).send(u))
-    .catch((err) => {
-      if (err.name === 'ValidationError') return res.status(400).send({ message: `Произошла ошибка валидации ${err}` });
-      if (err.message === 'Not found') {
-        return res.status(404).send({ message: 'Данного пользователя не существует' });
+    .orFail(new CentralError('Данного пользователя не существует', 404))
+    .then((u) => {
+      if (!validator.isURL(u.avatar) || u.avatar === null) {
+        throw new CentralError('Произошла ошибка валидации', 401);
       }
-      return res.status(500).send({ message: `Произошла ошибка ${err}` });
-    });
+      res.status(200).send(u);
+    })
+    .catch(next);
 };
 
-module.exports.login = (req, res) => {
+module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
   User.findOne({ email }).select('+password')
     .then((u) => {
       if (!u) {
-        return Promise.reject(new Error('Неверная почта или пароль'));
+        throw new CentralError('Данного пользователя не существует', 404);
       }
       // сравниваем переданный пароль и хеш из базы
       return bcryptjs.compare(password, u.password)
         .then((matched) => { // результат работы bcryptjs.compare (принимает true or false)
           if (!matched) {
-            return Promise.reject(new Error('Неверная почта или пароль'));
+            throw new CentralError('Неверная почта или пароль', 401);
           }
           return u;
         });
@@ -100,7 +105,5 @@ module.exports.login = (req, res) => {
       const token = jwt.sign({ _id: verifiedUser._id }, JWT_SECRET, { expiresIn: '7d' }); // создаем токен сроком на неделю
       res.status(200).send({ token });
     })
-    .catch((err) => { // возвращаем ошибку аутентификации
-      res.status(401).send({ message: err.message });
-    });
+    .catch(next);
 };
