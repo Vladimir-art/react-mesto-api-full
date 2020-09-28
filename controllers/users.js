@@ -22,8 +22,18 @@ module.exports.createUser = (req, res, next) => {
         email,
         password: hash,
       })
-        .then((u) => res.status(200).send(u))
-        .catch(next);
+        .then((u) => res.status(200).send({
+          _id: u._id,
+          name: u.name,
+          about: u.about,
+          avatar: u.avatar,
+        }))
+        .catch((err) => {
+          if (err.name === 'MongoError' && err.code === 11000) {
+            return next(new CentralError('Такой пользователь уже существует', 409));
+          }
+          return next(err);
+        });
     });
 };
 

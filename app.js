@@ -46,7 +46,7 @@ app.get('/crash-test', () => {
 app.post('/signin', celebrate({
   body: Joi.object().keys({
     email: Joi.string().email().required(),
-    password: Joi.string().min(8).required(),
+    password: Joi.string().required(),
   }).unknown(true),
 }), login);
 
@@ -56,7 +56,7 @@ app.post('/signup', celebrate({
     about: Joi.string().required().min(2).max(30),
     avatar: Joi.string().regex(/(http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-/]))?/).required(),
     email: Joi.string().email().required(),
-    password: Joi.string().min(8).required(),
+    password: Joi.string().required(),
   }).unknown(true),
 }), createUser);
 
@@ -81,6 +81,7 @@ app.use(errors());
 // централизованная обработка ошибок
 app.use((err, req, res, next) => {
   const { statusCode = 500, message } = err;
+  console.log(err);
   res
     .status(statusCode)
     .send({
