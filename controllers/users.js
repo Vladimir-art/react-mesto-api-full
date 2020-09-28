@@ -86,7 +86,7 @@ module.exports.login = (req, res, next) => {
   User.findOne({ email }).select('+password')
     .then((u) => {
       if (!u) {
-        throw new CentralError('Данного пользователя не существует', 404);
+        throw new CentralError('Неверная почта или пароль', 401);
       }
       // сравниваем переданный пароль и хеш из базы
       return bcryptjs.compare(password, u.password)
