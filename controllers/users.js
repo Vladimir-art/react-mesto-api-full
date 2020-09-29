@@ -6,6 +6,7 @@ const User = require('../models/user');
 const CentralError = require('../middlewares/CentralError');
 
 module.exports.createUser = (req, res, next) => {
+  console.log(req.body);
   const {
     name = 'Dawid Russki',
     about = 'Illustrator',
@@ -15,6 +16,13 @@ module.exports.createUser = (req, res, next) => {
   } = req.body;
   bcryptjs.hash(password, 10)
     .then((hash) => {
+      console.log({
+        name,
+        about,
+        avatar,
+        email,
+        password: hash,
+      });
       User.create({
         name,
         about,
