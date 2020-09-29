@@ -19,6 +19,7 @@ const limiter = expressRateLimit({
 const { users } = require('./routes/users'); // подключаем модули с инфой о пользователе(ях)
 const { cards } = require('./routes/cards'); // подключаем модули с инфой с карточками
 const { createUser, login } = require('./controllers/users');
+const CentralError = require('./middlewares/CentralError');
 const { requestLogger, errorLogger } = require('./middlewares/logger'); // подключение логгирования работы сервера
 const auth = require('./middlewares/auth');
 
@@ -70,8 +71,8 @@ app.use('/cards', celebrate({
     link: Joi.string().regex(/(http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-/]))?/).required(),
   }).unknown(true),
 }), cards); // список карточек
-app.use('/', (req, res) => { // если запросы не верны, выдаем ошибку
-  res.status(404).send({ message: 'Запрашиваемой страницы не существет' });
+app.use('/', (req, res, next) => { // если запросы не верны, выдаем ошибку
+  next(new CentralError('Запрашиваемой страницы не существет', 404));
 });
 
 app.use(errorLogger); // подключаем логгер ошибок
