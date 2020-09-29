@@ -7,9 +7,9 @@ const CentralError = require('../middlewares/CentralError');
 
 module.exports.createUser = (req, res, next) => {
   const {
-    name,
-    about,
-    avatar,
+    name = 'Dawid Russki',
+    about = 'Illustrator',
+    avatar = 'https://images.unsplash.com/photo-1497551060073-4c5ab6435f12?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=667&q=80',
     email,
     password,
   } = req.body;
