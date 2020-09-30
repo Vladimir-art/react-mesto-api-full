@@ -80,6 +80,7 @@ app.use(errorLogger); // подключаем логгер ошибок
 // обработка ошибок на стадии поверки celebrate
 app.use(errors());
 // централизованная обработка ошибок
+// eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
   const { statusCode = 500, message } = err;
 
@@ -94,5 +95,6 @@ app.use((err, req, res, next) => {
 });
 
 app.listen(PORT, () => {
+  // eslint-disable-next-line no-console
   console.log(`Server has been started on ${PORT} port...`);
 });
