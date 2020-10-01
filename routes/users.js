@@ -10,7 +10,11 @@ const {
 
 users.get('/', getUsers); // роут по получению пользователя
 
-users.get('/:id', getUserId); // роут по получению пользователя по ID
+users.get('/:id', celebrate({
+  body: Joi.object().keys({
+    id: Joi.string().hex().required(),
+  }),
+}), getUserId); // роут по получению пользователя по ID
 
 users.patch('/me', celebrate({
   body: Joi.object().keys({
