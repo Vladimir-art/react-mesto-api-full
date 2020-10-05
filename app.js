@@ -38,39 +38,33 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(requestLogger); // подключаем логгер запросов
 
 // роуты, не требующие авторизации
-app.post('/signin', login);
+app.post('/signin', celebrate({
+  body: Joi.object().keys({
+    email: Joi.string().email().required(),
+    password: Joi.string().required(),
+  }).unknown(true),
+}), login);
 
-// celebrate({
-//   body: Joi.object().keys({
-//     email: Joi.string().email().required(),
-//     password: Joi.string().required(),
-//   }).unknown(true),
-// })
-
-app.post('/signup', createUser);
-
-// celebrate({
-//   body: Joi.object().keys({
-//     name: Joi.string().min(2).max(30),
-//     about: Joi.string().min(2).max(30),
-//     avatar: Joi.string().regex(/(http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-/]))?/),
-//     email: Joi.string().email().required(),
-//     password: Joi.string().required(),
-//   }).unknown(true),
-// }),
+app.post('/signup', celebrate({
+  body: Joi.object().keys({
+    name: Joi.string().min(2).max(30),
+    about: Joi.string().min(2).max(30),
+    avatar: Joi.string().regex(/(http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-/]))?/),
+    email: Joi.string().email().required(),
+    password: Joi.string().required(),
+  }).unknown(true),
+}), createUser);
 
 app.use(auth); // авторизация
 
 // роуты, которым авторизация нужна
 app.use('/users', users); // используем роуты со списком пользователей
-app.use('/cards', cards); // список карточек
-
-// celebrate({
-//   body: Joi.object().keys({
-//     name: Joi.string().min(2).max(30).required(),
-//     link: Joi.string().regex(/(http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-/]))?/).required(),
-//   }).unknown(true),
-// }),
+app.use('/cards', celebrate({
+  body: Joi.object().keys({
+    name: Joi.string().min(2).max(30).required(),
+    link: Joi.string().regex(/(http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-/]))?/).required(),
+  }).unknown(true),
+}), cards); // список карточек
 app.use('/', (req, res, next) => { // если запросы не верны, выдаем ошибку
   next(new CentralError('Запрашиваемой страницы не существет', 404));
 });
@@ -78,7 +72,7 @@ app.use('/', (req, res, next) => { // если запросы не верны, �
 app.use(errorLogger); // подключаем логгер ошибок
 
 // обработка ошибок на стадии поверки celebrate
-// app.use(errors());
+app.use(errors());
 
 // централизованная обработка ошибок
 // eslint-disable-next-line no-unused-vars
